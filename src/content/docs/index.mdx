@@ -1,0 +1,104 @@
+---
+title: 'Shield Docs'
+description: Fange an mit Shield Anwendungen zu bauen
+template: splash
+hero:
+  tagline: 'Shield: HUK-Coburg Design System'
+  image:
+    file: ../../assets/shield-logo.png
+  actions:
+    - text: Los geht's
+      link: /allgemeines/01_allgemeines/
+      icon: right-arrow
+      variant: primary
+    - text: Storybook
+      link: https://huk24-de.web.dmz.tuhuk.de/shield/storybook/?path=/docs/willkommen--docs
+      icon: external
+    - text: Figma
+      link: hhttps://www.figma.com/files/1019341779458972733/team/1035474208502488250
+      icon: external
+---
+
+import VersionsBadge from '../../components/VersionsBadge.astro';
+import Packages from '../../components/allgemein/Packages.astro';
+import ListCard from '../../components/ListCard.astro';
+import InlineScripts from '../../components/InlineScripts.astro';
+import { version, twerkspaces } from '/package.json';
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+# Public Var: <code>{import.meta.env.PUBLIC_ANYBODY}</code>
+<InlineScripts />
+
+<Card title={`Package-Versionen in diesem Shield Release (v${version}):`}>
+  <s-tooltip open-on="click" class="not-content">
+    <span slot="content">
+      Support-Libraries für Angular und React die sich direkt auf die
+      Base-Components beziehen und somit die gleiche Versionsnummer bekommen.
+    </span>
+    <span class="s:d-flex s:gap-1 s:items-center">
+      Jedes Package wird unabhängig von einander Versioniert. Ausnahme&nbsp;
+      <s-icon size="xs" name="info" variant="outlined" tabindex="0"></s-icon>
+    </span>
+  </s-tooltip>
+  [Zum Versionschecker](/dev-tools/onlinecheck/)
+  <Packages />
+</Card>
+
+## Next steps
+
+<CardGrid stagger>
+  <Card title="Update content" icon="pencil">
+    Edit `src/content/docs/index.mdx` to see this page change.
+  </Card>
+  <Card title="Add new content" icon="add-document">
+    Add Markdown or MDX files to `src/content/docs` to create new pages.
+  </Card>
+  <Card title="Configure your site" icon="setting">
+    Edit your `sidebar` and other config in `astro.config.mjs`.
+  </Card>
+  <Card title="Read the docs" icon="open-book">
+    Learn more in [the Starlight Docs](https://starlight.astro.build/).
+  </Card>
+</CardGrid>
+
+### Overnext Steps
+
+<ListCard title="Learn" icon="open-book">
+  - [Astro's main features](/en/concepts/why-astro/) - [Island
+  architecture](/en/concepts/islands/) - [Astro
+  components](/en/basics/astro-components/) - [The Astro template
+  syntax](/en/basics/astro-syntax/)
+</ListCard>
+
+<ListCard title="Extend" icon="puzzle">
+  - [Add integrations like React, and Tailwind](/en/guides/integrations-guide/)
+  - [Create type safe content collections](/en/guides/content-collections/) -
+  [Enhance navigation with view transitions](/en/guides/view-transitions/) -
+  [Connect a headless CMS to your project](/en/guides/cms/)
+</ListCard>
+
+#### Overovernext Steps
+
+<CardGrid stagger>
+  <LinkCard
+    title="Understand your codebase"
+    description="Learn more about Astro’s file structure in our Project Structure guide."
+    href="/en/basics/project-structure/"
+  />
+  <LinkCard
+    title="Add a framework"
+    description="Extend Astro with support for React, Svelte, Tailwind and more in our Integrations guide."
+    href="/en/guides/integrations-guide/"
+  />
+  <LinkCard
+    title="Deploy your site"
+    description="Learn how to build and deploy an Astro project to the web in our Deployment guide."
+    href="/en/guides/deploy/"
+  />
+  <LinkCard
+    title="Kein Icon möglich"
+    description="Learn how to build and deploy an Astro project to the web in our Deployment guide."
+    href="/en/guides/deploy/"
+  />
+</CardGrid>

@@ -1,0 +1,5 @@
+{
+  "name": "@shield/style-dictionary",
+  "version": "1.2.0",
+  "description": "Style-Dictionary holt sich aus den Design-Tokens von Figma die Werte und speichert sie für unsere Outputs in den entsprechenden Formaten, wie z.b. fürs Web als CSS-Variablen für das Theme"
+}

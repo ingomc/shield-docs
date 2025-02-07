@@ -1,0 +1,190 @@
+<s-card headline="🐝 Shield Zufallsgenerator" subline="Bitte wähle die verfügbaren Teilnehmer:innen">
+  <div slot="body" class="s:d-flex s:flex-column s:gap-4">
+    <s-select multiple="true" class="roleSelect">
+      <s-menu-item value="all" choice-type="checkbox" label="Alle Rollen"></s-menu-item>
+      <s-menu-item value="Scrum Master" choice-type="checkbox" label="Scrum Master"></s-menu-item>
+      <s-menu-item value="Product Owner" choice-type="checkbox" label="Product Owner"></s-menu-item>
+      <s-menu-item value="Developer" choice-type="checkbox" label="Developer"></s-menu-item>
+      <s-menu-item value="Tester" choice-type="checkbox" label="Tester"></s-menu-item>
+      <s-menu-item value="UX-Designer" choice-type="checkbox" label="UX-Designer"></s-menu-item>
+      <span slot="label">Auswahl nach Rolle</span>
+    </s-select>
+
+    <div class="participantList"></div>
+  </div>
+
+  <div slot="footer">
+    <s-button>Starten</s-button>
+  </div>
+</s-card>
+
+<s-dialog backdrop="true" close-button="true" dismissible="true" headline="Ausgewählte Person">
+  <p class="dialogContent"></p>
+</s-dialog>
+
+<style is:global>
+  .participantList button {
+    border: none;
+  }
+  .not-content {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: var(--color-text);
+    font-family: var(--theme-font)
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  let participants = [
+    { name: "Steven", role: "Developer" },
+    { name: "Dima", role: "Developer" },
+    { name: "Philipp", role: "UX-Designer" },
+    { name: "Willy", role: "Developer" },
+    { name: "Tim", role: "UX-Designer" },
+    { name: "Andre", role: "Developer" },
+    { name: "Isabelle", role: "Tester" },
+    { name: "Flo", role: "Developer" },
+    { name: "Stefan", role: "UX-Designer" },
+    { name: "Herb", role: "Scrum Master" },
+    { name: "Addi", role: "Product Owner" }
+  ];
+
+  const uniqueParticipants = [...new Set(participants)].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
+  const participantContainer = document.querySelector(".participantList");
+  const choiceList = document.createElement("s-choice-list");
+  choiceList.setAttribute("multiple", "true");
+
+  const labelSlot = document.createElement("span");
+  labelSlot.setAttribute("slot", "label");
+  labelSlot.textContent = "Aktive Teilnehmer";
+  choiceList.appendChild(labelSlot);
+
+  uniqueParticipants.forEach((participant) => {
+    const choiceItem = document.createElement("s-choice-list-item");
+    choiceItem.setAttribute("choice-type", "checkbox");
+    choiceItem.setAttribute("value", participant.name);
+    choiceItem.setAttribute("data-role", participant.role);
+
+    const span = document.createElement("span");
+    span.setAttribute("slot", "content");
+    span.textContent = `${participant.name} (${participant.role})`;
+
+    choiceItem.appendChild(span);
+    choiceList.appendChild(choiceItem);
+  });
+
+  participantContainer.appendChild(choiceList);
+
+  const roleSelect = document.querySelector(".roleSelect");
+  const rollButton = document.querySelector("s-button");
+  const dialog = document.querySelector("s-dialog");
+  const dialogContent = dialog.querySelector(".dialogContent");
+
+  roleSelect.addEventListener("sChange", (event) => {
+    const selectedRoles = event.detail;
+    const allItems = choiceList.querySelectorAll("s-choice-list-item");
+    const allRolesItem = roleSelect.querySelector('s-menu-item[value="all"]');
+
+    if (selectedRoles.includes("all")) {
+      roleSelect.querySelectorAll("s-menu-item").forEach((item) => {
+        if (item.getAttribute("value") !== "all") {
+          item.activated = false;
+        }
+      });
+      allItems.forEach((item) => (item.selected = true));
+    } else {
+      allRolesItem.activated = false;
+      allItems.forEach((item) => {
+        const role = item.getAttribute("data-role");
+        if (selectedRoles.includes(role)) {
+          item.selected = true;
+        } else {
+          item.selected = false;
+        }
+      });
+    }
+  });
+
+  rollButton.addEventListener("sClick", async () => {
+    rollButton.setAttribute("loading", "true");
+
+    const selectedItems = Array.from(
+      choiceList.querySelectorAll("s-choice-list-item")
+    ).filter((item) => item.selected);
+    const selectedValues = selectedItems.map((item) =>
+      item.getAttribute("value")
+    );
+
+    if (selectedValues.length > 0) {
+      const randomIndex = Math.floor(Math.random() * selectedValues.length);
+      const selectedName = selectedValues[randomIndex];
+
+      dialogContent.innerHTML = `Die ausgewählte Person ist: <strong>${selectedName}</strong>`;
+
+      const selectedItem = choiceList.querySelector(
+        `s-choice-list-item[value="${selectedName}"]`
+      );
+      selectedItem.selected = false;
+
+      participants = participants.filter(
+        (participant) => participant.name !== selectedName
+      );
+
+      if (participants.length === 0) {
+        participants = [...uniqueParticipants];
+        choiceList
+          .querySelectorAll("s-choice-list-item")
+          .forEach((item) => (item.selected = true));
+      }
+    } else {
+      dialogContent.textContent = "Bitte wähle mindestens eine Person aus.";
+    }
+
+    // Reset des s-select und Value auf ''
+    roleSelect.querySelectorAll("s-menu-item").forEach((item) => {
+      item.activated = false;
+    });
+    roleSelect.value = "";
+
+    dialog.open();
+    confettiExplosion();
+
+    setTimeout(() => rollButton.removeAttribute("loading"), 1000);
+  });
+});
+
+function confettiExplosion() {
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+
+  for (let i = 0; i < 50; i++) {
+    let confettiPiece = document.createElement("span");
+    let size = Math.random() * 10 + 5;
+    let angle = Math.random() * 2 * Math.PI;
+    let distance = Math.random() * 300 + 100;
+    let duration = Math.random() * 1 + 1.5;
+    confettiPiece.style.cssText = `position:fixed;width:${size}px;height:${size}px;
+                                       background:hsl(${
+                                         Math.random() * 360
+                                       },100%,50%);
+                                       top:${centerY}px;left:${centerX}px;opacity:0.9;
+                                       border-radius:50%;transform:translate(-50%, -50%);
+                                       transition:transform ${duration}s ease-out, opacity ${duration}s ease-out;`;
+    document.body.appendChild(confettiPiece);
+
+    setTimeout(() => {
+      confettiPiece.style.transform = `translate(${
+        distance * Math.cos(angle)
+      }px, ${distance * Math.sin(angle)}px) rotate(${Math.random() * 360}deg)`;
+      confettiPiece.style.opacity = "0";
+    }, 0);
+
+    setTimeout(() => confettiPiece.remove(), duration * 1000);
+  }
+}
+
+</script>

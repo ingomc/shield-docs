@@ -1,0 +1,34 @@
+{
+  "name": "@shield/docs",
+  "type": "module",
+  "version": "0.2.0",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.21.5",
+    "@astrojs/svelte": "^5.6.0",
+    "astro": "^4.3.5",
+    "astro-live-code": "^0.0.2",
+    "sharp": "^0.32.5",
+    "svelte": "^4.2.18",
+    "typescript": "^5.5.2"
+  },
+  "twerkspaces": [
+    "packages/style-dictionary",
+    "packages/themes",
+    "packages/css-framework",
+    "packages/docs",
+    "packages/base",
+    "packages/hukde",
+    "packages/huk24",
+    "packages/vrk",
+    "packages/angular-bridge",
+    "apps/angular",
+    "apps/react-app"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "@shield/css-framework",
+  "version": "1.2.0",
+  "description": "Ein hilfreiches CSS-Framework, das es ermöglicht, Styling und Positionierung ohne Webkomponenten zu realisieren."
+}

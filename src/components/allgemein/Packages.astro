@@ -1,0 +1,27 @@
+---
+interface CustomDataFile {
+  default: Record<string, any>;
+}
+const data = await Astro.glob<CustomDataFile>('/twerkspaces/**/package.json');
+import VersionsBadge from '../VersionsBadge.astro';
+---
+
+<div class="s:d-flex s:flex-wrap s:gap-2">
+  {data.map((pkg) => (
+    <VersionsBadge>
+        <div class="s:d-flex">
+        {pkg.name.replace('@shield/','')} v{pkg.version} 
+        <s-tooltip open-on="click">
+            <span slot="content">
+              <strong>Name: </strong>{pkg.name} <br>
+              <strong>Version: </strong>{pkg.version} <br>
+              <strong>Beschreibung: </strong>{pkg.description}
+            </span>
+            <span>
+              <s-icon size="xs" name="info" variant="outlined" tabindex="0"></s-icon>
+            </span>
+        </s-tooltip>
+      </div>
+    </VersionsBadge>
+  ))}
+</div>

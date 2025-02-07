@@ -1,0 +1,34 @@
+---
+import VersionsBadge from '../VersionsBadge.astro';
+import {breakpoint} from '../../dummy/breakpoints.json'
+const url = Astro.url;
+console.log(url);
+const path="usage";
+const usagelink = new URL(url);
+usagelink.searchParams.append("usage", "true")
+// console.log(usagelink);
+---
+<strong>{url.pathname.split('/').slice(-2)}</strong> <br>
+<code>{url.href}</code> <br>
+<code>{url.pathname}</code> <br>
+<code>{url.pathname + usagelink.search}</code><a href={url.pathname + usagelink.search}>paramsi</a>
+
+{url.search.includes(path) ? 'MIT PARAM' : 'OHNE PARAM'}
+<hr>
+<VersionsBadge>Local Breakpoints Mock</VersionsBadge>
+<table class="s:my-4">
+<thead>
+<tr>
+  <td>Prefix</td>
+  <td>Wert</td>
+  <td>Beschreibung</td>
+</tr>
+</thead>
+{
+  Object.entries(breakpoint).map((bp) => <tr>
+    <td><code>{bp[0]}:</code></td>
+    <td>{bp[1].value}</td>
+    <td>{bp[1].description}</td>
+  </tr>)
+}
+</table>

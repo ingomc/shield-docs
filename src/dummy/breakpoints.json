@@ -1,0 +1,29 @@
+{
+  "breakpoint": {
+    "xs": {
+      "value": "0",
+      "type": "breakpoint",
+      "description": "Device: Portrait phones; Viewport: <576px; Columns 4; Margins: 16; Gutters 16"
+    },
+    "sm": {
+      "value": "36rem",
+      "type": "breakpoint",
+      "description": "Device: Landscape phones; Viewport: >=576px; Columns 4; Margins: 16; Gutters 16"
+    },
+    "md": {
+      "value": "48rem",
+      "type": "breakpoint",
+      "description": "Device: Tablets; Viewport: >=768px; Columns 8; Margins: 16; Gutters 16"
+    },
+    "lg": {
+      "value": "62rem",
+      "type": "breakpoint",
+      "description": "Device: Desktops; Viewport: >=992px; Columns 12; Margins: 16; Gutters 16"
+    },
+    "xl": {
+      "value": "75rem",
+      "type": "breakpoint",
+      "description": "Device: Large desktops; Viewport: >=1200px; Columns 12; Margins: 16; Gutters 16"
+    }
+  }
+}

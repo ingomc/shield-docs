@@ -1,0 +1,5 @@
+{
+  "name": "@shield/angular-bridge",
+  "version": "1.2.5",
+  "description": "Angular specific wrapper for @shield/base-components, and it gets the exact same version number."
+}
