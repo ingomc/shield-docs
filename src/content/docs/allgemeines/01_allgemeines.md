@@ -11,7 +11,7 @@ description: Bekomme hier den groben Überblick über alle Bestandteile
 
 ## Produktvision
 
-> Für die Produkt-Teams welche hohe Aufwände für konsistente UIs haben, ist Shield ein Design System, welches für den HUK-Konzern maßgeschneidert ist, um schnell flexibel konsistente performante und barrierefreie UIs zu erzeugen.  Im Gegensatz zu anderen Design Systemen oder Eigenentwicklungen bietet unser Produkt ein Design-System mit durchgängiger und multi-brand fähiger Toolchain über den gesamten Design- und Entwicklungsprozess.
+> Für die Produkt-Teams welche hohe Aufwände für konsistente UIs haben, ist Shield ein Design System, welches für den HUK-Konzern maßgeschneidert ist, um schnell flexibel konsistente performante und barrierefreie UIs zu erzeugen. Im Gegensatz zu anderen Design Systemen oder Eigenentwicklungen bietet unser Produkt ein Design-System mit durchgängiger und multi-brand fähiger Toolchain über den gesamten Design- und Entwicklungsprozess.
 
 [comment]: # 'flowchart TD'
 [comment]: # 'A[Design-Tokens] --> B & Z[Figma]'

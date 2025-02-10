@@ -1,0 +1,59 @@
+---
+// const JIRA_API_URL = 'https://vera.lan.huk-coburg.de/rest/api/2/search';
+// const JIRA_API_URL = 'https://vera.lan.huk-coburg.de/rest/api/2/project/13702';
+// const JIRA_API_URL = 'https://vera.lan.huk-coburg.de/rest/api/2/search?jql=project=13702 AND sprint in openSprints()';
+const JIRA_API_URL = 'https://vera.lan.huk-coburg.de/rest/api/2/search?jql=project=13702 AND sprint in openSprints() AND issuetype not in (Sub-task)';
+
+const PAT = import.meta.env.JIRA_PAT;
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+// API-Call zur Build-Zeit
+const response = await fetch(JIRA_API_URL, {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${PAT}`,
+    'Accept': 'application/json'
+  }
+});
+
+const data = await response.json();
+// const issues = data.issues.map((issue: { key: any; fields: { summary: any; description: any; subtasks: any; }; }) => ({
+//   key: issue.key,
+//   summary: issue.fields.summary,
+//   description: issue.fields.description,
+//   subTasks: issue.fields.subtasks || [] // Hier holen wir die Unteraufgaben
+// }));
+// console.log(data);
+
+---
+
+  <h2>{data.name}</h2>
+
+  <p>
+    {data.description}
+  </p>
+  <a href=`${data.self}`>{data.self}</a>
+  <!-- Container für die Jira-Issues -->
+   <div id="issues-container">
+    {data.issues.filter((issue) => !issue.fields.issuetype.subtask).map((issue) => (
+        <details>
+            <summary><code><strong>{issue.key}</strong></code> - {issue.fields.summary}</summary>
+            <p>Assigned: {issue.fields.assignee?.displayName ?? '-'}</p>
+{/* 
+            {issue.subTasks.length > 0 && (
+                <div class="sub-issues">
+                    {issue.subTasks.map((subTask: { key: unknown; summary: unknown; description: unknown; }) => (
+                        <details>
+                            <summary>{subTask.key}: {subTask.summary}</summary>
+                            <p>{subTask.description}</p>
+                        </details>
+                    ))}
+                </div>
+            )} */}
+        </details>
+    ))}
+</div> 
+<script define:vars={{ data }}>
+    // 'issues' ist jetzt im Frontend verfügbar und kann hier verwendet werden
+    console.log(data);
+</script>
