@@ -1,0 +1,119 @@
+---
+const statusEmojis = {
+    Offen: "🔓",
+    Geschlossen: "✅",
+    "Ready for Development": "🚦",
+    Angenommen: "☑️",
+    "In Arbeit": "👷🏻‍♂️",
+    "In Test": "🔍",
+};
+
+function getStatusEmoji(status: string | number) {
+    return statusEmojis[status] || "❓"; // Fallback für unbekannte Status
+}
+const { issues } = Astro.props;
+---
+{
+    issues.map(
+        (issue: {
+            fields: {
+                status: { name: string | null | undefined };
+                summary: unknown;
+                assignee: { displayName: any };
+            };
+            key: unknown;
+        }) => (
+            <details
+                open={
+                    issue.fields.status.name === "In Arbeit"
+                        ? "true"
+                        : undefined
+                }
+                class={`
+                        ${issue.fields.summary.toUpperCase().includes("RELEASE") ? "is-release" : ""}
+  ${issue.fields.status.name === "Geschlossen" ? "closed" : "not-ready"}
+  ${issue.fields.status.name === "In Arbeit" ? "in-progress" : ""}
+  ${issue.fields.status.name === "In Test" ? "in-test" : ""}
+`}
+            >
+                <summary>
+                    <small title={issue.fields.status.name}>
+                        {getStatusEmoji(issue.fields.status.name)}
+                    </small>{" "}
+                    <code>
+                        <strong>{issue.key}</strong>
+                    </code>{" "}
+                    - {issue.fields.summary}
+                </summary>
+                <p><code>{issue.fields.status.name}</code>Assigned: {issue.fields.assignee?.displayName ?? "-"}</p>
+                {issue.fields.subtasks.length > 0 && (
+                    <div class="sub-issues">
+                        <ul>
+                            {issue.fields.subtasks.map(
+                                (subTask: {
+                                    key: unknown;
+                                    summary: unknown;
+                                    description: unknown;
+                                }) => (
+                                    <li>
+                                        <code>{subTask.key}</code>:{" "}
+                                        {subTask.fields.summary}{" "}
+                                        <code>
+                                            {subTask.fields.status.name}
+                                        </code>
+                                    </li>
+                                ),
+                            )}
+                        </ul>
+                    </div>
+                )}
+            </details>
+        ),
+    )
+}
+
+
+
+<style>
+    details {
+        border: 1px solid var(--sl-color-gray-4);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        scale: 0.96;
+    }
+    summary {
+        cursor: pointer;
+        text-overflow: ellipsis;
+        word-break: keep-all;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+    .closed {
+        opacity: 0.75;
+        border-color: var(--sl-color-green);
+    }
+    .closed:hover,
+    .closed:focus-within {
+        opacity: 1;
+    }
+    .is-release {
+        border-width: 3px;
+        border-style: dashed;
+    }
+    .in-progress {
+        border-color: var(--sl-color-orange);
+        scale: 1;
+    }
+    .in-test {
+        border-color: var(--sl-color-accent);
+        scale: 1;
+    }
+</style>
+<style is:global>
+    label:has(#hideClosed:checked) {
+        color: var(--sl-color-green);
+    }
+    label:has(#hideClosed:checked) ~ .closed {
+        display: none;
+    }
+</style>

@@ -1,4 +1,6 @@
 ---
+import VeraIssue from "./VeraIssue.astro";
+
 // const JIRA_API_URL = 'https://vera.lan.huk-coburg.de/rest/api/2/search';
 // const JIRA_API_URL = 'https://vera.lan.huk-coburg.de/rest/api/2/project/13702';
 // const JIRA_API_URL = 'https://vera.lan.huk-coburg.de/rest/api/2/search?jql=project=13702 AND sprint in openSprints()';
@@ -20,18 +22,18 @@ const response = await fetch(JIRA_API_URL, {
 const data = await response.json();
 
 const uxIssues = data.issues
-  .filter((issue) => !issue.fields.issuetype.subtask) // Filtere Subtasks raus
-  .filter((issue) => {
-    const summary = issue.fields.summary.toUpperCase(); // Großschreibung für case-insensitive Suche
-    return summary.includes('[UX') || summary.includes('[FIGMA');
-  });
+    .filter((issue) => !issue.fields.issuetype.subtask) // Filtere Subtasks raus
+    .filter((issue) => {
+        const summary = issue.fields.summary.toUpperCase(); // Großschreibung für case-insensitive Suche
+        return summary.includes("[UX") || summary.includes("[FIGMA");
+    });
 
-  const devIssues = data.issues
-  .filter((issue) => !issue.fields.issuetype.subtask) // Filtere Subtasks raus
-  .filter((issue) => {
-    const summary = issue.fields.summary.toUpperCase(); // Großschreibung für case-insensitive Suche
-    return !summary.includes('[UX') && !summary.includes('[FIGMA');
-  });
+const devIssues = data.issues
+    .filter((issue) => !issue.fields.issuetype.subtask) // Filtere Subtasks raus
+    .filter((issue) => {
+        const summary = issue.fields.summary.toUpperCase(); // Großschreibung für case-insensitive Suche
+        return !summary.includes("[UX") && !summary.includes("[FIGMA");
+    });
 
 // const issues = data.issues.map((issue: { key: any; fields: { summary: any; description: any; subtasks: any; }; }) => ({
 //   key: issue.key,
@@ -41,18 +43,6 @@ const uxIssues = data.issues
 // }));
 // console.log(data);
 
-const statusEmojis = {
-    Offen: "🔓",
-    Geschlossen: "✅",
-    "Ready for Development": "🚦",
-    Angenommen: "☑️",
-    "In Arbeit": "👷🏻‍♂️",
-    "In Test": "🔍",
-};
-
-function getStatusEmoji(status: string | number) {
-    return statusEmojis[status] || "❓"; // Fallback für unbekannte Status
-}
 const currentDateTime = new Date().toLocaleString("de-DE", {
     year: "numeric",
     month: "2-digit",
@@ -75,153 +65,15 @@ const currentDateTime = new Date().toLocaleString("de-DE", {
     <label>
         <input type="checkbox" checked id="hideClosed" /> Geschlossene Issues ausblenden
     </label>
-    <h3>
-        DEV:
-    </h3>
-    {
-        devIssues
-            .map(
-                (issue: {
-                    fields: {
-                        status: { name: string | null | undefined };
-                        summary: unknown;
-                        assignee: { displayName: any };
-                    };
-                    key: unknown;
-                }) => (
-                    <details
-                        open={
-                            issue.fields.status.name === "In Arbeit"
-                                ? "true"
-                                : undefined
-                        }
-                        class={`
-      ${issue.fields.status.name === "Geschlossen" ? "closed" : "not-ready"}
-      ${issue.fields.status.name === "In Arbeit" ? "in-progress" : ""}
-      ${issue.fields.status.name === "In Test" ? "in-test" : ""}
-    `}
-                    >
-                        <summary>
-                            <small title={issue.fields.status.name}>
-                                {getStatusEmoji(issue.fields.status.name)}
-                            </small>{" "}
-                            <code>
-                                <strong>{issue.key}</strong>
-                            </code>{" "}
-                            - {issue.fields.summary}
-                        </summary>
-                        <p>
-                            Assigned:{" "}
-                            {issue.fields.assignee?.displayName ?? "-"}
-                        </p>
-                        {/* 
-            {issue.subTasks.length > 0 && (
-                <div class="sub-issues">
-                    {issue.subTasks.map((subTask: { key: unknown; summary: unknown; description: unknown; }) => (
-                        <details>
-                            <summary>{subTask.key}: {subTask.summary}</summary>
-                            <p>{subTask.description}</p>
-                        </details>
-                    ))}
-                </div>
-            )} */}
-                    </details>
-                ),
-            )
-    }
-
-<h3>UX:</h3>
-    {
-        uxIssues
-            .map(
-                (issue: {
-                    fields: {
-                        status: { name: string | null | undefined };
-                        summary: unknown;
-                        assignee: { displayName: any };
-                    };
-                    key: unknown;
-                }) => (
-                    <details
-                        open={
-                            issue.fields.status.name === "In Arbeit"
-                                ? "true"
-                                : undefined
-                        }
-                        class={`
-      ${issue.fields.status.name === "Geschlossen" ? "closed" : "not-ready"}
-      ${issue.fields.status.name === "In Arbeit" ? "in-progress" : ""}
-      ${issue.fields.status.name === "In Test" ? "in-test" : ""}
-    `}
-                    >
-                        <summary>
-                            <small title={issue.fields.status.name}>
-                                {getStatusEmoji(issue.fields.status.name)}
-                            </small>{" "}
-                            <code>
-                                <strong>{issue.key}</strong>
-                            </code>{" "}
-                            - {issue.fields.summary}
-                        </summary>
-                        <p>
-                            Assigned:{" "}
-                            {issue.fields.assignee?.displayName ?? "-"}
-                        </p>
-                        {/* 
-            {issue.subTasks.length > 0 && (
-                <div class="sub-issues">
-                    {issue.subTasks.map((subTask: { key: unknown; summary: unknown; description: unknown; }) => (
-                        <details>
-                            <summary>{subTask.key}: {subTask.summary}</summary>
-                            <p>{subTask.description}</p>
-                        </details>
-                    ))}
-                </div>
-            )} */}
-                    </details>
-                ),
-            )
-    }
+    <h3>DEV:</h3>
+    <VeraIssue issues={devIssues} />
+    
+    <h3>UX:</h3>
+    
+    <VeraIssue issues={uxIssues} />
 </div>
-<script define:vars={{ data }}>
+<script define:vars={{ data, devIssues }}>
     // 'issues' ist jetzt im Frontend verfügbar und kann hier verwendet werden
     console.log(data);
+    console.log(devIssues);
 </script>
-
-<style>
-    details {
-        border: 1px solid var(--sl-color-gray-4);
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        scale: 0.96;
-    }
-    summary {
-        cursor: pointer;
-        text-overflow: ellipsis;
-        word-break: keep-all;
-        white-space: nowrap;
-        overflow: hidden;
-    }
-    .closed {
-        opacity: 0.75;
-        border-color: var(--sl-color-green);
-    }
-    .closed:hover,
-    .closed:focus-within {
-        opacity: 1;
-    }
-    .in-progress {
-        border-color: var(--sl-color-orange);
-        scale: 1;
-    }
-    .in-test {
-        border-color: var(--sl-color-accent);
-        scale: 1;
-    }
-    label:has(:checked) {
-        color: var(--sl-color-green);
-    }
-    label:has(:checked) ~ .closed {
-        display: none;
-    }
-</style>
