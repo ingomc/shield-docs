@@ -1,4 +1,6 @@
 ---
+const { issues } = Astro.props;
+
 const statusEmojis = {
     Offen: "🔓",
     Geschlossen: "✅",
@@ -11,9 +13,75 @@ const statusEmojis = {
 function getStatusEmoji(status: string | number) {
     return statusEmojis[status] || "❓"; // Fallback für unbekannte Status
 }
-const { issues } = Astro.props;
+
+const jsonToConfluenceWiki = (issues) => {
+  const headers = ["Lösungsversion", "Issue Key", "Assignee"];
+  let table = `|| ${headers.join(" || ")} ||\n`;
+
+  // Sprint-Informationen extrahieren (erster gefundener Sprint)
+  let sprintInfo = "";
+  const firstSprint = issues.find(issue => issue.fields.customfield_10100)?.fields.customfield_10100[0];
+  
+  if (firstSprint) {
+    const sprintStartRaw = firstSprint.match(/startDate=([^,]+)/)?.[1] || "🛫";
+    const sprintEndRaw = firstSprint.match(/endDate=([^,]+)/)?.[1] || "🛬";
+    const sprintGoal = firstSprint.match(/goal=([^,]+)/)?.[1] || "Kein Ziel definiert";
+    
+    // Datumsformat ins deutsche Format umwandeln und Stunden runden
+    const formatDate = (dateString) => {
+      if (dateString === "Unbekannt") return dateString;
+      const dateObj = new Date(dateString);
+      const formattedDate = dateObj.toLocaleDateString("de-DE");
+      const formattedTime = dateObj.getHours() + ":00";
+      return `${formattedDate} ${formattedTime} Uhr`;
+    };
+    
+    const sprintStart = formatDate(sprintStartRaw);
+    const sprintEnd = formatDate(sprintEndRaw);
+    
+    sprintInfo = `*📆 Zeitraum:* 🛫 {status:color=Grey|title=${sprintStart}} → 🛬 {status:color=Grey|title=${sprintEnd}}  \n` +
+                 `*🏁 Sprint-Ziel:* \n ${sprintGoal}  \n\n`;
+  }
+
+  // Sortiere die Issues nach Assignee
+  issues.sort((a, b) => {
+    const assigneeA = a.fields.assignee?.displayName || "?";
+    const assigneeB = b.fields.assignee?.displayName || "?";
+    return assigneeA.localeCompare(assigneeB);
+  });
+
+  issues.forEach(issue => {
+    const fields = issue.fields;
+    
+    // Alle Lösungsversionen extrahieren und als Status-Widget mit neuer Zeile setzen
+    const fixVersions = fields.fixVersions?.map(v => `{status:color=Grey|title=${v.name}}`).join(" \\\\") || "-";
+    
+    // Assignee mit Confluence Benutzer verknüpfen
+    const assignee = fields.assignee 
+      ? `[~${fields.assignee.name}]` // Confluence Benutzerverlinkung
+      : "-";
+    
+    const row = [
+      fixVersions, // Lösungsversionen als Status-Widgets untereinander
+      `{jira:${issue.key}}`, // Jira-Makro für die Verlinkung
+      assignee
+    ];
+    table += `| ${row.join(" | ")} |\n`;
+  });
+
+  return sprintInfo + table;
+};
+
+// Generiere die Tabelle
+const wikiTable = jsonToConfluenceWiki(issues);
 ---
-{
+
+<section>
+<h2>Jira Issues als Confluence-Tabelle</h2>
+<textarea rows="10" style="width: 100%; font-family: monospace;" readonly>{wikiTable}</textarea>
+</section>
+
+{/* 
     issues.map(
         (issue: {
             fields: {
@@ -31,10 +99,10 @@ const { issues } = Astro.props;
                 }
                 class={`
                         ${issue.fields.summary.toUpperCase().includes("RELEASE") ? "is-release" : ""}
-  ${issue.fields.status.name === "Geschlossen" ? "closed" : "not-ready"}
-  ${issue.fields.status.name === "In Arbeit" ? "in-progress" : ""}
-  ${issue.fields.status.name === "In Test" ? "in-test" : ""}
-`}
+                        ${issue.fields.status.name === "Geschlossen" ? "closed" : "not-ready"}
+                        ${issue.fields.status.name === "In Arbeit" ? "in-progress" : ""}
+                        ${issue.fields.status.name === "In Test" ? "in-test" : ""}
+                    `}
             >
                 <summary>
                     <small title={issue.fields.status.name}>
@@ -45,7 +113,10 @@ const { issues } = Astro.props;
                     </code>{" "}
                     - {issue.fields.summary}
                 </summary>
-                <p><code>{issue.fields.status.name}</code>Assigned: {issue.fields.assignee?.displayName ?? "-"}</p>
+                <p>
+                    <code>{issue.fields.status.name}</code>Assigned:{" "}
+                    {issue.fields.assignee?.displayName ?? "-"}
+                </p>
                 {issue.fields.subtasks.length > 0 && (
                     <div class="sub-issues">
                         <ul>
@@ -69,10 +140,8 @@ const { issues } = Astro.props;
                 )}
             </details>
         ),
-    )
+    )*/
 }
-
-
 
 <style>
     details {
