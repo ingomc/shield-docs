@@ -1,4 +1,5 @@
 ---
+import { jsonToConfluenceWiki, jsonToConfluenceWikiSprint } from "../../scripts/toConfluence";
 import VeraIssue from "./VeraIssue.astro";
 
 // const JIRA_API_URL = 'https://vera.lan.huk-coburg.de/rest/api/2/search';
@@ -51,6 +52,7 @@ const currentDateTime = new Date().toLocaleString("de-DE", {
     minute: "2-digit",
     second: "2-digit",
 });
+
 ---
 
 <h2>{data.name}</h2>
@@ -72,6 +74,22 @@ const currentDateTime = new Date().toLocaleString("de-DE", {
     
     <VeraIssue issues={uxIssues} />
 </div>
+
+<section>
+    <h3>Sprint Info:</h3>
+    <textarea rows="5" style="width: 100%; font-family: monospace;" readonly>
+        {jsonToConfluenceWikiSprint(devIssues)}
+    </textarea>
+
+    <h3>Sprint Table</h3>
+    <textarea rows="20" style="width: 100%; font-family: monospace;" readonly>
+        h3. DEV:
+        {jsonToConfluenceWiki(devIssues)}
+        h3. UX:
+        {jsonToConfluenceWiki(uxIssues)}
+    </textarea>
+</section>
+
 <script define:vars={{ data, devIssues }}>
     // 'issues' ist jetzt im Frontend verfügbar und kann hier verwendet werden
     console.log(data);
