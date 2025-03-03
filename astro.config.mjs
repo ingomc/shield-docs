@@ -12,7 +12,7 @@ export default defineConfig({
   site: 'https://withastrostarlightylbot4-w3df--4321--41692973.local-credentialless.webcontainer.io',
   integrations: [
     starlight({
-      title: `Shield v${version} `,
+      title: `@shield/docs@v${version} `,
       defaultLocale: 'de',
       locales: {
         de: {
