@@ -41,6 +41,9 @@ async function fetchAllVersions() {
   try {
     await writeFile('package-versions.json', JSON.stringify(versionData, null, 2));
     console.log('Stable versions written to package-versions.json');
+    console.log(Object.fromEntries(
+      Object.entries(versionData).map(([key, value]) => [key, value[0]])
+    ))
   } catch (writeError) {
     console.error(`Error writing file: ${writeError.message}`);
   }
