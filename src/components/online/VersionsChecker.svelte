@@ -84,6 +84,13 @@
 					selectedVersions['@shield/themes']
 				)}/hukde/theme.css`,
 			type: 'themes'
+		},
+		{
+			url: (host) =>
+				`https://${host}/shield/style-dictionary/${getShortVersion(
+					selectedVersions['@shield/style-dictionary']
+				)}/figma/tokens.json`,
+			type: 'themes'
 		}
 	];
 

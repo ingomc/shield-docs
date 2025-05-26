@@ -13,6 +13,7 @@ const packages = [
   '@shield/huk24-components',
   '@shield/vrk-components',
   '@shield/themes',
+  '@shield/style-dictionary',
   '@shield/css-framework',
   '@shield/angular'
 ];
