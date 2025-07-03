@@ -226,33 +226,39 @@
 </div>
 
 {#each Object.entries(mandants) as [name, values]}
-	<h6>{name.toUpperCase()}</h6>
-	{#each mandants[name].urls[environment] as envHost}
-		<div class="card not-content">
-			<ul>
-				{#each files as file}
-					<li class="s:pr-10 link-item">
-						<a href={file.url(envHost, name).replace('https://', '//')} target="_blank" class="link">
-							{file.url(envHost, name)}
-							<svg
-								class="inline-block external-link-icon"
-								xmlns="http://www.w3.org/2000/svg"
-								width="16"
-								height="16"
-								viewBox="0 0 256 256">
-								<path
-									fill="currentColor"
-									d="M224 104a8 8 0 0 1-16 0V59.32l-66.33 66.34a8 8 0 0 1-11.32-11.32L196.68 48H152a8 8 0 0 1 0-16h64a8 8 0 0 1 8 8Zm-40 24a8 8 0 0 0-8 8v72h58V80h72a8 8 0 0 0 0-16h58a16 16 0 0 0-16 16v128a16 16 0 0 0 16 16h128a16 16 0 0 0 16-16v-72a8 8 0 0 0-8-8Z"/>
-							</svg>
-						</a>
-						<span class="version-badge {getBadgeClass(loadedVersions[file.url(envHost, name)])}">
-							{loadedVersions[file.url(envHost, name)] ?? 'vX.X.X'}
-						</span>
-					</li>
-				{/each}
-			</ul>
+	<div class="mandant-section">
+		<h6>{name.toUpperCase()}</h6>
+		<div class="hosts-container">
+			{#each mandants[name].urls[environment] as envHost}
+				<div class="host-card {name}-border">
+					<div class="host-title">{envHost}</div>
+					<div class="files-grid">
+						{#each files as file}
+							<div class="file-row">
+								<div class="file-info">
+									<a href={file.url(envHost, name).replace('https://', '//')} target="_blank" class="file-link">
+										<span class="url-base">/shield/</span>
+										<span class="url-type-badge">{file.type}</span>
+										<span class="url-base">/</span>
+										<span class="url-version-badge">{getShortVersion(selectedVersions[file.type === 'components' ? mandants[name].componentname : '@shield/' + file.type])}</span>
+										<span class="url-base">/{file.type === 'components' ? 'lib/lib.esm.js' : file.type === 'css-framework' ? 'css/all.css' : file.type === 'themes' ? 'hukde/theme.css' : 'figma/tokens.json'}</span>
+										<svg class="external-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+											<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+											<polyline points="15,3 21,3 21,9"></polyline>
+											<line x1="10" y1="14" x2="21" y2="3"></line>
+										</svg>
+									</a>
+								</div>
+								<span class="version-badge {getBadgeClass(loadedVersions[file.url(envHost, name)])}">
+									{loadedVersions[file.url(envHost, name)] ?? 'vX.X.X'}
+								</span>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/each}
 		</div>
-	{/each}
+	</div>
 {/each}
 
 <style>
@@ -260,48 +266,147 @@
 		width: 100%;
 		padding: .5rem;
 	}
-	ul {
-		padding-inline-start: 1rem;
-		hyphens: auto;
-		word-break: break-all;
+
+	.mandant-section {
+		margin-bottom: 1.5rem;
 	}
-	.card {
+
+	.mandant-section h6 {
+		margin-bottom: 0.5rem;
+		font-size: 1.125rem;
+		font-weight: 600;
+	}
+
+	.hosts-container {
+		display: grid;
+		gap: 0.75rem;
+		grid-template-columns: 1fr;
+	}
+
+	.host-card {
+		background: var(--sl-color-bg-nav);
 		border: 1px solid var(--sl-color-gray-5);
 		border-radius: 0.5rem;
-		padding: 1rem;
-		text-decoration: none;
-		color: var(--sl-color-gray-2);
-		box-shadow: var(--sl-shadow-md);
+		padding: 0.75rem;
+		box-shadow: var(--sl-shadow-sm);
 	}
-	.link-item {
+
+	.host-title {
+		font-weight: 600;
+		margin-bottom: 0.5rem;
+		color: var(--sl-color-text);
+		font-size: 0.8rem;
+		padding-bottom: 0.375rem;
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.files-grid {
+		display: grid;
+		gap: 0.125rem;
+	}
+
+	.file-row {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		margin-bottom: 0.5rem;
+		justify-content: space-between;
+		padding: 0.25rem 0.5rem;
+		background: var(--sl-color-bg);
+		border: 1px solid var(--sl-color-gray-6);
+		border-radius: 0.375rem;
+		min-height: 1.5rem;
 	}
-	.link {
-		color: var(--sl-color-text-accent);
-		text-decoration: underline;
+
+	.file-info {
 		flex: 1;
+		min-width: 0;
 	}
-	.link:hover {
-		text-decoration: none;
+
+	.file-link {
+		font-size: 0.875rem;
+		color: var(--sl-color-text-accent) !important;
+		text-decoration: underline !important;
+		display: flex;
+		align-items: center;
+		gap: 0.125rem;
+		flex-wrap: wrap;
 	}
-	.external-link-icon {
-		margin-left: 0.25rem;
+
+	.url-base {
+		color: var(--sl-color-gray-3);
+		font-size: 0.8rem;
+	}
+
+	.url-type-badge {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.0625rem 0.375rem;
+		border-radius: 0.25rem;
+		font-size: 0.625rem;
+		font-weight: 600;
+		text-transform: lowercase;
+		background: var(--sl-color-accent);
+		color: var(--sl-color-white);
+		margin: 0 0.125rem;
+	}
+
+	.url-version-badge {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.0625rem 0.375rem;
+		border-radius: 0.25rem;
+		font-size: 0.625rem;
+		font-weight: 600;
+		background: var(--sl-color-purple);
+		color: var(--sl-color-white);
+		margin: 0 0.125rem;
+	}
+
+	.file-link:hover {
+		color: var(--sl-color-text-accent) !important;
+		text-decoration: underline !important;
+	}
+
+	.file-link:visited {
+		color: var(--sl-color-text-accent) !important;
+		text-decoration: underline !important;
+	}
+
+	.file-link:active {
+		color: var(--sl-color-text-accent) !important;
+		text-decoration: underline !important;
+	}
+
+	.external-icon {
+		flex-shrink: 0;
 		opacity: 0.7;
 	}
+
+	/* Mandant-spezifische Borderfarben */
+	.huk-border {
+		border-color: #ffd700 !important; /* Gold */
+	}
+
+	.huk24-border {
+		border-color: #ff8c00 !important; /* Orange */
+	}
+
+	.vrk-border {
+		border-color: #4a90e2 !important; /* Blau */
+	}
+
 	.version-badge {
 		display: inline-flex;
 		align-items: center;
-		padding: 0.25rem 0.5rem;
-		border-radius: 0.375rem;
-		font-size: 0.75rem;
+		padding: 0.125rem 0.5rem;
+		border-radius: 9999px;
+		font-size: 0.675rem;
 		font-weight: 500;
 		white-space: nowrap;
-		min-width: 80px;
+		min-width: 50px;
 		justify-content: center;
+		flex-shrink: 0;
 	}
+
 	.version-badge.success {
 		background-color: #dcfce7;
 		color: #166534;
