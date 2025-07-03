@@ -1,16 +1,84 @@
 <script>
 	export let data;
 	const environments = ['prod', 'cloudprod', 'test', 'cloudts'];
+	
+	// Session Storage für Umgebungsauswahl
 	let environment = environments[0];
-
+	let mounted = false;
+	
+	// Beim Laden der Komponente: Gespeicherte Werte aus Session Storage laden
+	import { onMount } from 'svelte';
+	
 	let selectedVersions = {};
 	const getShortVersion = (fullversion) => {
 		const [major, minor] = fullversion.split('.');
 		return `${major}.${minor}`;
 	};
+	
+	// Initialisierung der selectedVersions mit Defaults
 	Object.keys(data).forEach((name) => {
 		selectedVersions[name] = data[name][0];
 	});
+	
+	onMount(() => {
+		// Gespeicherte Umgebung laden
+		const savedEnvironment = sessionStorage.getItem('shield-environment');
+		if (savedEnvironment && environments.includes(savedEnvironment)) {
+			environment = savedEnvironment;
+		}
+		
+		// Gespeicherte Versionen laden
+		const savedVersions = sessionStorage.getItem('shield-versions');
+		if (savedVersions) {
+			try {
+				const parsedVersions = JSON.parse(savedVersions);
+				// Nur gültige Versionen übernehmen
+				Object.keys(parsedVersions).forEach(name => {
+					if (data[name] && data[name].includes(parsedVersions[name])) {
+						selectedVersions[name] = parsedVersions[name];
+					}
+				});
+				// Trigger reactivity
+				selectedVersions = { ...selectedVersions };
+			} catch (e) {
+				// Fallback bei Parse-Fehlern
+				console.warn('Could not parse saved versions from sessionStorage');
+			}
+		}
+		
+		// Jetzt können wir die Werte speichern
+		mounted = true;
+	});
+	
+	// Reactive Statements: Werte in Session Storage speichern wenn sie sich ändern
+	$: if (mounted && environment) {
+		sessionStorage.setItem('shield-environment', environment);
+	}
+	
+	$: if (mounted && selectedVersions) {
+		sessionStorage.setItem('shield-versions', JSON.stringify(selectedVersions));
+	}
+	
+	// Reset-Funktion für alles (Versionen + Umgebung)
+	function resetAll() {
+		// Umgebung zurücksetzen
+		environment = environments[0];
+		
+		// Versionen zurücksetzen
+		Object.keys(data).forEach((name) => {
+			selectedVersions[name] = data[name][0];
+		});
+		selectedVersions = { ...selectedVersions };
+		
+		// Session Storage löschen
+		if (mounted) {
+			sessionStorage.removeItem('shield-versions');
+			sessionStorage.removeItem('shield-environment');
+		}
+		
+		// Auch loadedVersions zurücksetzen, damit neue Versionen geladen werden
+		loadedVersions = {};
+	}
 
 	export const mandants = {
 		huk: {
@@ -194,21 +262,32 @@
 </script>
 
 <h6>Versionen</h6>
-<div class="s:d-grid s:gap-2" style="--g-cols: 3">
-	{#each Object.entries(data) as [name, value]}
-		<span>
-			<select
-				width="100%"
-				class="font-mono"
-				name="versions-{name}"
-				id="versions-{name}"
-				bind:value={selectedVersions[name]}>
-				{#each value as version}
-					<option value={version}>{version} - {name.split('/')[1]}</option>
-				{/each}
-			</select>
-		</span>
-	{/each}
+<div class="versions-section">
+	<div class="s:d-grid s:gap-2" style="--g-cols: 3">
+		{#each Object.entries(data) as [name, value]}
+			<span>
+				<select
+					width="100%"
+					class="font-mono"
+					name="versions-{name}"
+					id="versions-{name}"
+					bind:value={selectedVersions[name]}>
+					{#each value as version}
+						<option value={version}>{version} - {name.split('/')[1]}</option>
+					{/each}
+				</select>
+			</span>
+		{/each}
+	</div>
+	<button 
+		class="reset-button" 
+		on:click={resetAll}
+		title="Alles zurücksetzen (Versionen + Umgebung)">
+		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+			<path d="M3 3v5h5"/>
+		</svg>
+	</button>
 </div>
 
 <div class="s:d-flex s:items-center">
@@ -265,6 +344,42 @@
 	select {
 		width: 100%;
 		padding: .5rem;
+	}
+
+	.versions-section {
+		display: flex;
+		align-items: flex-start;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.versions-section > div {
+		flex: 1;
+	}
+
+	.reset-button {
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.375rem;
+		padding: 0.5rem;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--sl-color-text);
+		transition: all 0.2s ease;
+		min-width: 40px;
+		height: 40px;
+	}
+
+	.reset-button:hover {
+		background: var(--sl-color-bg-sidebar);
+		border-color: var(--sl-color-gray-4);
+		transform: translateY(-1px);
+	}
+
+	.reset-button:active {
+		transform: translateY(0);
 	}
 
 	.mandant-section {
