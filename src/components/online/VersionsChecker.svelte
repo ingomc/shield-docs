@@ -185,7 +185,7 @@
 				if (data.status === 'success') {
 					return data.version;
 				} else {
-					return data.version || 'Fehler beim Laden';
+					return data.version || 'Error';
 				}
 			} else {
 				// Direct fetch for non-prod URLs (no CORS issues)
@@ -193,7 +193,7 @@
 				const text = await response.text();
 				
 				// Try multiple version patterns
-				let version = 'Keine Version gefunden';
+				let version = '???';
 				
 				// Pattern 1: v1.2.3 format
 				const versionRegex1 = /v\d+\.\d+\.\d+/i;
@@ -226,23 +226,20 @@
 				return version;
 			}
 		} catch (err) {
-			return 'Fehler beim Laden';
+			return 'Error';
 		}
 	}
 
 	// Funktion für Badge-Klasse
 	function getBadgeClass(version) {
-		if (!version || version === 'vX.X.X') {
+		if (!version || version === 'vX.X.X' || version === '...') {
 			return 'loading';
 		}
-		if (version === 'N/A (nicht verfügbar)') {
-			return 'not-available'; // Neue Klasse für "nicht verfügbar"
+		if (version.includes('Fehler') || version.includes('Error') || version.includes('Timeout') || version.includes('Keine Version gefunden')) {
+			return 'warning'; // Error ist jetzt gelb/warning
 		}
-		if (version.includes('Fehler') || version.includes('Error') || version.includes('Timeout')) {
-			return 'error';
-		}
-		if (version === 'Keine Version gefunden') {
-			return 'warning'; // Neue Klasse für "keine Version gefunden"
+		if (version === '???' || version === '---') {
+			return 'not-available'; // Für disabled files und "keine Version gefunden"
 		}
 		return 'success';
 	}
@@ -279,8 +276,10 @@
 					if (!loadedVersions[url]) {
 						// Prüfen ob dieser Link disabled sein soll
 						if (isDisabled(file.type, envHost)) {
-							loadedVersions = { ...loadedVersions, [url]: 'N/A (nicht verfügbar)' };
+							loadedVersions = { ...loadedVersions, [url]: '---' };
 						} else {
+							// Setze sofort Loading-Status
+							loadedVersions = { ...loadedVersions, [url]: '...' };
 							fetchVersion(url).then((version) => {
 								loadedVersions = { ...loadedVersions, [url]: version };
 							});
@@ -386,7 +385,15 @@
 										</svg>
 									</button>
 									<span class="version-badge {getBadgeClass(loadedVersions[file.url(envHost, name)])}">
-										{loadedVersions[file.url(envHost, name)] ?? 'vX.X.X'}
+										{#if loadedVersions[file.url(envHost, name)]?.includes('Keine Version gefunden')}
+											???
+										{:else if loadedVersions[file.url(envHost, name)] === '...' || !loadedVersions[file.url(envHost, name)]}
+											<svg class="loading-spinner" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+												<path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+											</svg>
+										{:else}
+											{loadedVersions[file.url(envHost, name)]}
+										{/if}
 									</span>
 								</div>
 							</div>
@@ -631,8 +638,9 @@
 		border-radius: 9999px;
 		font-size: 0.625rem;
 		font-weight: 500;
+		font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 		white-space: nowrap;
-		min-width: 50px;
+		width: 80px;
 		height: 28px;
 		justify-content: center;
 		flex-shrink: 0;
@@ -652,6 +660,15 @@
 		background-color: #f3f4f6;
 		color: #6b7280;
 		border: 1px solid #d1d5db;
+	}
+	
+	.loading-spinner {
+		animation: spin 1s linear infinite;
+	}
+	
+	@keyframes spin {
+		from { transform: rotate(0deg); }
+		to { transform: rotate(360deg); }
 	}
 	.version-badge.warning {
 		background-color: #fef3c7;
