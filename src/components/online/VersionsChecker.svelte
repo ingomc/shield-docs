@@ -158,7 +158,7 @@
 				`https://${host}/shield/style-dictionary/${getShortVersion(
 					selectedVersions['@shield/style-dictionary']
 				)}/figma/tokens.json`,
-			type: 'themes'
+			type: 'style-dictionary'
 		}
 	];
 
@@ -235,6 +235,9 @@
 		if (!version || version === 'vX.X.X') {
 			return 'loading';
 		}
+		if (version === 'N/A (nicht verfügbar)') {
+			return 'not-available'; // Neue Klasse für "nicht verfügbar"
+		}
 		if (version.includes('Fehler') || version.includes('Error') || version.includes('Timeout')) {
 			return 'error';
 		}
@@ -242,6 +245,29 @@
 			return 'warning'; // Neue Klasse für "keine Version gefunden"
 		}
 		return 'success';
+	}
+	
+	// Funktion um zu prüfen, ob ein File/Host disabled sein soll
+	function isDisabled(fileType, envHost) {
+		// Figma tokens gibt es nie auf den reinen prod URLs (www.*)
+		return fileType === 'style-dictionary' && 
+		       (envHost.includes('www.huk.de') || envHost.includes('www.huk24.de') || envHost.includes('www.vrk.de'));
+	}
+
+	// Funktion zum Kopieren der URL in die Zwischenablage
+	async function copyToClipboard(url) {
+		try {
+			await navigator.clipboard.writeText(url);
+			// Kurzes visuelles Feedback könnte hier hinzugefügt werden
+		} catch (err) {
+			// Fallback für ältere Browser
+			const textArea = document.createElement('textarea');
+			textArea.value = url;
+			document.body.appendChild(textArea);
+			textArea.select();
+			document.execCommand('copy');
+			document.body.removeChild(textArea);
+		}
 	}
 
 	// Zusatz: Automatischer Version-Fetch für alle URLs
@@ -251,9 +277,14 @@
 				files.forEach((file) => {
 					const url = file.url(envHost, mandantName);
 					if (!loadedVersions[url]) {
-						fetchVersion(url).then((version) => {
-							loadedVersions = { ...loadedVersions, [url]: version };
-						});
+						// Prüfen ob dieser Link disabled sein soll
+						if (isDisabled(file.type, envHost)) {
+							loadedVersions = { ...loadedVersions, [url]: 'N/A (nicht verfügbar)' };
+						} else {
+							fetchVersion(url).then((version) => {
+								loadedVersions = { ...loadedVersions, [url]: version };
+							});
+						}
 					}
 				});
 			});
@@ -295,9 +326,11 @@
 	<span class="s:d-flex s:ml-a s:items-center">
 		<h6>Umgebung:</h6>
 		<span>
-			<select class="s:w-32 ml-auto" name="env" id="env" bind:value={environment}>
+			<select class="s:w-48 ml-auto" name="env" id="env" bind:value={environment}>
 				{#each environments as option}
-					<option value={option}>{option.toLocaleUpperCase()}</option>
+					<option value={option}>
+						{#if option === 'prod'}🟢{:else if option === 'cloudprod'}☁️{:else if option === 'test'}🧪{:else if option === 'cloudts'}🌩️{/if} {option.toLocaleUpperCase()}
+					</option>
 				{/each}
 			</select>
 		</span>
@@ -310,27 +343,52 @@
 		<div class="hosts-container">
 			{#each mandants[name].urls[environment] as envHost}
 				<div class="host-card {name}-border">
-					<div class="host-title">{envHost}</div>
+					<div class="host-title">
+						{#if environment === 'prod'}🟢{:else if environment === 'cloudprod'}☁️{:else if environment === 'test'}🧪{:else if environment === 'cloudts'}🌩️{/if} {envHost}
+					</div>
 					<div class="files-grid">
 						{#each files as file}
-							<div class="file-row">
+							<div class="file-row {isDisabled(file.type, envHost) ? 'disabled' : ''}">
 								<div class="file-info">
-									<a href={file.url(envHost, name).replace('https://', '//')} target="_blank" class="file-link">
-										<span class="url-base">/shield/</span>
-										<span class="url-type-badge">{file.type}</span>
-										<span class="url-base">/</span>
-										<span class="url-version-badge">{getShortVersion(selectedVersions[file.type === 'components' ? mandants[name].componentname : '@shield/' + file.type])}</span>
-										<span class="url-base">/{file.type === 'components' ? 'lib/lib.esm.js' : file.type === 'css-framework' ? 'css/all.css' : file.type === 'themes' ? 'hukde/theme.css' : 'figma/tokens.json'}</span>
-										<svg class="external-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-											<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-											<polyline points="15,3 21,3 21,9"></polyline>
-											<line x1="10" y1="14" x2="21" y2="3"></line>
-										</svg>
-									</a>
+									{#if isDisabled(file.type, envHost)}
+										<span class="file-text">
+											<span class="url-base">/shield/</span>
+											<span class="url-type-badge">{file.type}</span>
+											<span class="url-base">/</span>
+											<span class="url-version-badge">{getShortVersion(selectedVersions[file.type === 'components' ? mandants[name].componentname : '@shield/' + file.type])}</span>
+											<span class="url-base">/{file.type === 'components' ? 'lib/lib.esm.js' : file.type === 'css-framework' ? 'css/all.css' : file.type === 'themes' ? 'hukde/theme.css' : file.type === 'style-dictionary' ? 'figma/tokens.json' : ''}</span>
+										</span>
+									{:else}
+										<a href={file.url(envHost, name).replace('https://', '//')} 
+										   target="_blank" 
+										   class="file-link">
+											<span class="url-base">/shield/</span>
+											<span class="url-type-badge">{file.type}</span>
+											<span class="url-base">/</span>
+											<span class="url-version-badge">{getShortVersion(selectedVersions[file.type === 'components' ? mandants[name].componentname : '@shield/' + file.type])}</span>
+											<span class="url-base">/{file.type === 'components' ? 'lib/lib.esm.js' : file.type === 'css-framework' ? 'css/all.css' : file.type === 'themes' ? 'hukde/theme.css' : file.type === 'style-dictionary' ? 'figma/tokens.json' : ''}</span>
+											<svg class="external-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+												<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+												<polyline points="15,3 21,3 21,9"></polyline>
+												<line x1="10" y1="14" x2="21" y2="3"></line>
+											</svg>
+										</a>
+									{/if}
 								</div>
-								<span class="version-badge {getBadgeClass(loadedVersions[file.url(envHost, name)])}">
-									{loadedVersions[file.url(envHost, name)] ?? 'vX.X.X'}
-								</span>
+								<div class="file-actions">
+									<button 
+										class="copy-button"
+										title="URL kopieren"
+										on:click={() => copyToClipboard(file.url(envHost, name))}>
+										<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+											<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+											<path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+										</svg>
+									</button>
+									<span class="version-badge {getBadgeClass(loadedVersions[file.url(envHost, name)])}">
+										{loadedVersions[file.url(envHost, name)] ?? 'vX.X.X'}
+									</span>
+								</div>
 							</div>
 						{/each}
 					</div>
@@ -424,16 +482,58 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0.25rem 0.5rem;
+		padding: 0.375rem 0.75rem;
 		background: var(--sl-color-bg);
 		border: 1px solid var(--sl-color-gray-6);
-		border-radius: 0.375rem;
-		min-height: 1.5rem;
+		border-radius: 0.5rem;
+		min-height: 32px;
+		margin: 0;
+	}
+
+	.file-row.disabled {
+		opacity: 0.5;
+		background: var(--sl-color-bg-nav);
+		border-style: dashed;
 	}
 
 	.file-info {
 		flex: 1;
 		min-width: 0;
+	}
+
+	.file-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		flex-shrink: 0;
+		margin: 0;
+	}
+
+	.copy-button {
+		background: transparent;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.25rem;
+		padding: 0.25rem;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--sl-color-gray-3);
+		transition: all 0.2s ease;
+		width: 28px;
+		height: 28px;
+		flex-shrink: 0;
+	}
+
+	.copy-button:hover {
+		background: var(--sl-color-bg-sidebar);
+		border-color: var(--sl-color-gray-4);
+		color: var(--sl-color-text);
+		transform: translateY(-1px);
+	}
+
+	.copy-button:active {
+		transform: translateY(0);
 	}
 
 	.file-link {
@@ -444,6 +544,21 @@
 		align-items: center;
 		gap: 0.125rem;
 		flex-wrap: wrap;
+	}
+
+	.file-text {
+		font-size: 0.875rem;
+		color: var(--sl-color-gray-4) !important;
+		display: flex;
+		align-items: center;
+		gap: 0.125rem;
+		flex-wrap: wrap;
+	}
+
+	.file-link.disabled {
+		color: var(--sl-color-gray-4) !important;
+		text-decoration: none !important;
+		cursor: not-allowed;
 	}
 
 	.url-base {
@@ -514,10 +629,11 @@
 		align-items: center;
 		padding: 0.125rem 0.5rem;
 		border-radius: 9999px;
-		font-size: 0.675rem;
+		font-size: 0.625rem;
 		font-weight: 500;
 		white-space: nowrap;
 		min-width: 50px;
+		height: 28px;
 		justify-content: center;
 		flex-shrink: 0;
 	}
@@ -542,6 +658,12 @@
 		color: #92400e;
 		border: 1px solid #fde68a;
 	}
+	.version-badge.not-available {
+		background-color: #f3f4f6;
+		color: #6b7280;
+		border: 1px solid #d1d5db;
+		font-style: italic;
+	}
 	/* Dark mode support */
 	:global([data-theme="dark"]) .version-badge.success {
 		background-color: #14532d;
@@ -562,5 +684,11 @@
 		background-color: #78350f;
 		color: #fde68a;
 		border: 1px solid #92400e;
+	}
+	:global([data-theme="dark"]) .version-badge.not-available {
+		background-color: #374151;
+		color: #9ca3af;
+		border: 1px solid #4b5563;
+		font-style: italic;
 	}
 </style>
