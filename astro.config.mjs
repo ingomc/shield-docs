@@ -9,6 +9,7 @@ const cloudPath = 'https://static.c.huk.de/shield/';
 
 // https://astro.build/config
 export default defineConfig({
+  output: 'hybrid', // Enable API routes with dynamic parameters
   site: 'https://withastrostarlightylbot4-w3df--4321--41692973.local-credentialless.webcontainer.io',
   integrations: [
     starlight({
